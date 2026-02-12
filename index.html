@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nuestra Historia Mágica ✨</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@600&display=swap');
+
+        body {
+            margin: 0; overflow: hidden;
+            font-family: 'Quicksand', sans-serif;
+            height: 100vh; width: 100vw;
+            /* Noche Mágica Profunda */
+            background: linear-gradient(45deg, #0b0f19, #16213e, #1f4068, #1b1b2f);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        canvas {
+            display: block; position: absolute; top: 0; left: 0;
+            z-index: 5; pointer-events: none;
+        }
+
+        /* --- PANTALLA INICIO --- */
+        #intro {
+            position: absolute; z-index: 200; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, #a18cd1, #fbc2eb);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            transition: opacity 1.5s;
+        }
+        .play-btn {
+            font-size: 7rem; cursor: pointer;
+            animation: bounce 2s infinite alternate;
+            filter: drop-shadow(0 0 15px white);
+        }
+        @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
+        
+        h1 {
+            font-family: 'Dancing Script', cursive; color: #fff;
+            font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-align: center; margin: 0 20px;
+        }
+
+        /* --- FOTOS (CONTENEDORES) --- */
+        .photo-container {
+            position: absolute; opacity: 0;
+            transform: scale(0) translateY(50px);
+            transition: all 2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            z-index: 20; 
+            padding: 5px; 
+            background: rgba(255, 255, 255, 0.25); /* Cristal */
+            backdrop-filter: blur(5px); 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .photo-container.circle { border-radius: 50%; }
+        .photo-container.rect { border-radius: 15px; }
+        
+        .photo-container.visible { 
+            opacity: 1; transform: scale(1) translateY(0); 
+        }
+
+        .photo-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .circle img { border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); }
+        .rect img { border-radius: 10px; border: 2px solid rgba(255,255,255,0.5); }
+
+        /* --- TEXTOS --- */
+        .label {
+            position: absolute; 
+            background: rgba(255,255,255,0.95);
+            padding: 8px 15px; border-radius: 15px;
+            color: #d81b60; font-weight: bold; font-size: 0.9rem;
+            text-align: center;
+            opacity: 0; transform: translateY(20px);
+            transition: opacity 1s, transform 1s;
+            z-index: 25;
+            box-shadow: 0 0 15px gold;
+            white-space: nowrap;
+        }
+        .label.visible { opacity: 1 !important; transform: translateY(0) !important; }
+
+        /* ANIMACIÓN LATIDO CORAZÓN ❤️ */
+        .heart-beat {
+            display: inline-block;
+            animation: heartThrob 0.8s infinite ease-in-out;
+        }
+        @keyframes heartThrob {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            40% { transform: scale(1); }
+            60% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- POSICIONES CALIBRADAS --- */
+        
+        /* Papás (Abajo) */
+        #papas1 { width: 120px; height: 120px; bottom: 22%; left: 10%; }
+        #lbl-papas1 { bottom: 15%; left: 10%; }
+
+        #papas2 { width: 120px; height: 120px; bottom: 22%; right: 10%; }
+        #lbl-papas2 { bottom: 15%; right: 10%; }
+
+        /* Hija Principal (Centro - Calibrado) */
+        #hija-main { 
+            width: 150px; height: 200px; 
+            top: 38%; left: 50%; transform: translate(-50%, -50%) scale(0); 
+        }
+        #hija-main.visible { transform: translate(-50%, -50%) scale(1); }
+        /* Texto exactamente debajo de la foto */
+        #lbl-hija { top: 55%; left: 50%; transform: translateX(-50%); }
+
+        /* Familia (Arriba) */
+        #familia { 
+            width: 180px; height: 180px; 
+            top: 8%; left: 50%; transform: translateX(-50%) scale(0);
+        }
+        #familia.visible { transform: translateX(-50%) scale(1); }
+        #lbl-familia { top: 30%; left: 50%; transform: translateX(-50%); }
+
+        /* FOTOS CAYENDO */
+        .falling {
+            position: absolute; 
+            width: 80px !important; height: 80px !important;
+            border-radius: 10px; border: 3px solid white;
+            top: -150px; z-index: 15;
+            background: white; box-shadow: 0 0 20px gold;
+            transition: top 15s linear; 
+        }
+        .falling.is-falling { top: 110vh; }
+        .falling img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px;}
+
+        /* --- PANTALLA FINAL --- */
+        #final-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; z-index: 300;
+            transition: opacity 3s;
+        }
+        #final-text {
+            color: #fff; font-family: 'Dancing Script'; font-size: 3rem;
+            text-align: center;
+            animation: lights 1.5s infinite alternate;
+        }
+        @keyframes lights {
+            0% { text-shadow: 0 0 5px #fff, 0 0 10px #ff00de, 0 0 15px #ff00de; opacity: 0.8; }
+            100% { text-shadow: 0 0 20px #fff, 0 0 30px #ff00de, 0 0 40px #ff00de; opacity: 1; transform: scale(1.05); }
+        }
+
+        /* --- AJUSTES CELULAR --- */
+        @media (max-width: 600px) {
+            #papas1, #papas2 { width: 100px; height: 100px; bottom: 18%; }
+            #lbl-papas1, #lbl-papas2 { bottom: 12%; font-size: 0.8rem; }
+            
+            #hija-main { width: 130px; height: 170px; top: 40%; }
+            #lbl-hija { top: 58%; font-size: 0.8rem; }
+
+            #familia { width: 150px; height: 150px; top: 5%; }
+            #lbl-familia { top: 25%; font-size: 0.8rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <audio id="music" loop><source src="musica.mp3" type="audio/mpeg"></audio>
+
+    <div id="intro" onclick="startJourney()">
+        <div class="play-btn">🏰✨</div>
+        <h1>Nuestra Historia Mágica</h1>
+        <p style="color: #fff; margin-top:10px;">(Toca para comenzar)</p>
+    </div>
+
+    <div id="final-screen">
+        <h1 id="final-text">Continuará... <span class="heart-beat">❤️</span></h1>
+    </div>
+
+    <div id="papas1" class="photo-container circle"><img src="papas1.jpg"></div>
+    <div id="lbl-papas1" class="label">Donde todo comenzó... <span class="heart-beat">❤️</span></div>
+
+    <div id="papas2" class="photo-container circle"><img src="papas2.jpg"></div>
+    <div id="lbl-papas2" class="label">El amor floreció... <span class="heart-beat">🌹</span></div>
+
+    <div id="hija-x1" class="falling" style="left: 15%; transform: rotate(-10deg);"><img src="hija_extra1.jpg"></div>
+    <div id="hija-x2" class="falling" style="left: 75%; transform: rotate(10deg);"><img src="hija_extra2.jpg"></div>
+
+    <div id="hija-main" class="photo-container rect"><img src="hija_principal.jpg"></div>
+    <div id="lbl-hija" class="label">Un regalo de Dios... <span class="heart-beat">👑</span></div>
+
+    <div id="familia" class="photo-container circle"><img src="familia.jpg"></div>
+    <div id="lbl-familia" class="label">Familia unida... por siempre <span class="heart-beat">✨</span></div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        let fireflies = [], fairyTrail = [], pathPoints = [];
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            
+            // Camino ajustado para pasar por los centros de las nuevas posiciones
+            pathPoints = [
+                {x: width/2, y: height+50}, 
+                {x: width*0.2, y: height*0.8}, // Papa 1
+                {x: width*0.8, y: height*0.8}, // Papa 2
+                {x: width/2, y: height*0.5},    // Hija (Centro)
+                {x: width/2, y: height*0.15}    // Familia (Arriba)
+            ];
+
+            fireflies = [];
+            for(let i=0; i<40; i++) fireflies.push(new Firefly());
+        }
+        window.addEventListener('resize', resize);
+
+        // CLASE LUCIÉRNAGA
+        class Firefly {
+            constructor() {
+                this.x = Math.random() * width; this.y = Math.random() * height;
+                this.size = Math.random() * 3 + 2;
+                this.vx = (Math.random() - 0.5) * 1.5; this.vy = (Math.random() - 0.5) * 1.5;
+                this.alpha = Math.random();
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                if(this.x<0 || this.x>width) this.vx*=-1;
+                if(this.y<0 || this.y>height) this.vy*=-1;
+                this.alpha += (Math.random()-0.5)*0.1;
+                if(this.alpha<0) this.alpha=0; if(this.alpha>1) this.alpha=1;
+            }
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.shadowBlur = 10; ctx.shadowColor = "gold";
+                ctx.fillStyle = "#FFF";
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+            }
+        }
+
+        let startTime = null;
+        function startJourney() {
+            document.getElementById('intro').style.opacity = 0;
+            setTimeout(() => document.getElementById('intro').style.display = 'none', 1500);
+            document.getElementById('music').play().catch(c => null);
+            startTime = Date.now();
+            resize();
+            requestAnimationFrame(animate);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            fireflies.forEach(f => { f.update(); f.draw(); });
+
+            if (startTime) {
+                let t = (Date.now() - startTime) / 1000;
+                drawFairyPath(t);
+
+                // TIEMPOS
+                if (t > 8) { show('papas1'); show('lbl-papas1'); }
+                if (t > 18) { show('papas2'); show('lbl-papas2'); }
+                
+                // CAIDA FOTOS EXTRA
+                if (t > 24) { 
+                    document.getElementById('hija-x1').classList.add('is-falling');
+                    document.getElementById('hija-x2').classList.add('is-falling');
+                }
+
+                if (t > 30) { show('hija-main'); show('lbl-hija'); }
+                if (t > 42) { show('familia'); show('lbl-familia'); }
+
+                if (t > 52) { document.getElementById('final-screen').style.opacity = 1; }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        function drawFairyPath(t) {
+            let totalTime = 45;
+            let progress = Math.min(t / totalTime, 1);
+            let pos = getFairyPos(progress);
+
+            if(progress < 1) {
+                for(let i=0; i<3; i++) fairyTrail.push({x: pos.x, y: pos.y, age: 100, size: Math.random()*3});
+            }
+            fairyTrail.forEach((p, i) => {
+                p.age -= 1; p.y += 0.5;
+                if(p.age <= 0) fairyTrail.splice(i,1);
+                ctx.fillStyle = `rgba(255, 215, 0, ${p.age/100})`;
+                ctx.beginPath(); ctx.arc(p.x + (Math.random()-0.5)*10, p.y, p.size, 0, Math.PI*2); ctx.fill();
+            });
+
+            if(progress < 1) {
+                ctx.shadowBlur = 20; ctx.shadowColor = "white";
+                ctx.fillStyle = "#FFD700"; ctx.beginPath(); ctx.arc(pos.x, pos.y, 8, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function getFairyPos(prog) {
+            let count = pathPoints.length - 1;
+            let segProg = prog * count;
+            let idx = Math.floor(segProg);
+            let percent = segProg - idx;
+            if (idx >= count) return pathPoints[count];
+            let p1 = pathPoints[idx]; let p2 = pathPoints[idx+1];
+            return { x: p1.x + (p2.x - p1.x) * percent, y: p1.y + (p2.y - p1.y) * percent };
+        }
+
+        function show(id) { 
+            document.getElementById(id).classList.add('visible');
+        }
+    </script>
+</body>
+</html>
